@@ -1,0 +1,406 @@
+<link rel="import" href="../tangere/tangere.html">
+<link rel="import" href="../at-i18n/at-i18n-behavior.html">
+<link rel="import" href="../at-form-behaviors/at-form-behaviors-validation.html">
+<link rel="import" href="../paper-radio-group/paper-radio-group.html">
+<link rel="import" href="../paper-radio-button/paper-radio-button.html">
+<link rel="import" href="../iron-label/iron-label.html">
+<link rel="import" href="../at-theme/at-theme.html">
+
+<dom-module id="at-form-state">
+  <style include="at-form-common"></style>
+  <style>
+    :host * {
+      box-sizing: border-box;
+    }
+
+    :host {
+      @apply(--at-form-host);
+    }
+
+    paper-radio-button.error {
+      --paper-radio-button-checked-color: var(--at-error-color);
+      --paper-radio-button-checked-ink-color: var(--at-error-color);
+      --paper-radio-button-unchecked-color: var(--at-error-color);
+      --paper-radio-button-unchecked-ink-color: var(--at-error-color);
+      --paper-radio-button-label-color: var(--at-error-color);
+    }
+
+    paper-radio-group:focus {
+      outline: none;
+    }
+
+    #insertPoint {
+      @apply(--layout-vertical);
+    }
+
+    #hint {
+      min-height: 14px;
+      margin-bottom: 8px;
+    }
+
+    .at-content-container {
+      @apply(--layout-horizontal);
+    }
+
+    .column-1 {
+      @apply(--layout-vertical);
+    }
+
+    .column-11 {
+      @apply(--layout-flex-11);
+      @apply(--layout-vertical);
+    }
+
+    .radio-text {
+      @apply(--at-form-label-font);
+      padding: 6px 0;
+      cursor: pointer;
+      apply(--unselectable);
+    }
+
+    .radio-text.no-events {
+      pointer-events: none;
+      cursor: default;
+    }
+
+    .layout {
+      @apply(--layout);
+    }
+
+    .fake-empty-radio {
+      padding: 8px;
+      height: 32px;
+      width: 42px;
+    }
+
+  </style>
+  <template>
+    <div id="atContainer" class="at-container">
+      <iron-label id="label" for="insertPoint">{{label}}</iron-label>
+      <div id="contentContainer" class="at-content-container">
+        <paper-radio-group id="insertPoint" class="column-1"></paper-radio-group>
+        <div id="labelInsertPoint" class="column-11"></div>
+      </div>
+      <div id="hint"></div>
+    </div>
+  </template>
+
+  <script>
+    // global counter for paper radio buttons in at-form-state elements;
+    Polymer.AtFormState = Polymer.AtFormState || {};
+    Polymer.AtFormState._paperRadioButonNumber = 0;
+
+    Polymer({
+      is: 'at-form-state',
+      behaviors: [ Tangere.behaviors.formValidation, Tangere.behaviors.i18n ],
+      properties: {
+        label: {
+          type: String,
+          value: 'at-form-state',
+          title: 'Label'
+        },
+        hideLabel: {
+          type: Boolean,
+          value: false,
+          observer: 'hideLabelChanged',
+          title: 'Do not show the label'
+        },
+        // ------------------------------------------------------------
+        // valuelist renamed to xvaluelist is here to improve compatibility with copyProperties function in at-core-form/script/schema-helpers.js
+        // this function goes through element properties and copies property values from property definition in json schema to element properties
+        // now valuelist doens't exist in property definition in json schema so undefined will be copied
+        // xvaluelist exists in json schema and when property name is valuelist, xvaluelist should be copied
+        // so we introduce xvaluelist property in at-form-state to remove if statement that would detect this situation
+        // ------------------------------------------------------------
+        xvaluelist: {
+          type: Array,
+          value: function() {
+            return [];
+          },
+          observer: 'xvaluelistChanged',
+          schema: {
+            items: {
+              type: "object",
+              properties: {
+                title: {
+                  type: "string",
+                  title: "Title"
+                },
+                value: {
+                  type: "string",
+                  title: "Value"
+                },
+                disabled: {
+                  type: "boolean",
+                  title: "Disabled"
+                }
+              }
+            }
+          },
+          layout: 'horizontal',
+          title: 'Value List'
+        },
+        value: {
+          type: String,
+          value: '',
+          observer: 'valueChanged',
+          title: 'Value'
+        },
+        required: {
+          type: Boolean,
+          value: false,
+          observer: 'requiredChanged',
+          title: 'Input required'
+        },
+        disabled: {
+          type: Boolean,
+          value: false,
+          observer: 'disabledChanged',
+          title: 'Field value can not be changed'
+        },
+        /**
+         * Hides the element. When hidden nothing is displayed for the element
+         * @property hide
+         * @type Boolean
+         * @default false
+         */
+        hide: {
+          type: Boolean,
+          value: false,
+          observer: 'hideChanged',
+          title: 'Field is invisible'
+        }
+      },
+      $meta: [{
+        title: "Radio",
+        type: "string",
+        xtype: "radio"
+      }],
+      ready: function() {
+        this._isReady = false;
+
+        var boundValidateIsValueInXValueList = this._validateIsValueInXValueList.bind(this);
+        this._validationFunctions.push(boundValidateIsValueInXValueList);
+
+        var self = this;
+        var radioGroup = this.$.insertPoint;
+        radioGroup.addEventListener('iron-select', function(event) {
+          var newValue = event.detail.item.name;
+          self.value = newValue;
+        });
+
+        this._isReady = true;
+      },
+      focus: function() {
+        var paperRadioGroup = this.$.insertPoint;
+        paperRadioGroup.focus();
+      },
+      _validateIsValueInXValueList: function(value) {
+        var valueList = this.xvaluelist;
+        var result = false;
+
+        if (valueList.length < 1) {
+          return true;
+        }
+        if (value === '') {
+          return true;
+        }
+
+        valueList.forEach(function(item, index) {
+          result = result || item.value === value;
+        });
+
+        if (!result) {
+          this._errorMessage = 'Value ' + value + ' is invalid.';
+        }
+
+        return result;
+      },
+      hideChanged: function(newValue, oldValue) {
+        var wrapper = this.$.atContainer;
+        this.toggleClass('hidden', newValue, wrapper);
+        if (this._isReady) {
+          this.validate();
+        }
+      },
+      hideLabelChanged: function(newValue, oldValue) {
+        this.toggleClass("hidden", newValue, this.$.label);
+      },
+      xvaluelistChanged: function(newValue, oldValue) {
+        var self = this;
+
+        // clear previous html
+        Polymer.dom(this.$.insertPoint).innerHTML = '';
+        Polymer.dom(this.$.labelInsertPoint).innerHTML = '';
+
+        // newValue can be CSV or array; detection needed and normlization to array
+        newValue = this._convertToArray(newValue);
+        if (this._isString(this.xvaluelist)) {
+          this.xvaluelist = newValue;
+          return;
+        }
+
+        newValue.forEach(function(element, index, array) {
+          var fieldHtml = self._constructRadioField(element);
+          Polymer.dom(self.$.insertPoint).appendChild(fieldHtml);
+          var fieldLabel = self._constructRadioLabel(element);
+          Polymer.dom(self.$.labelInsertPoint).appendChild(fieldLabel);
+        });
+
+        if (newValue.length > 0) {
+          var inputValue = this.value;
+          if (inputValue !== "") {
+            var radioGroup = this.$.insertPoint;
+            radioGroup.select(inputValue);
+          }
+        }
+
+        this.disabledChanged(this.disabled, this.disabled);
+      },
+      valueChanged: function(newValue, oldValue) {
+        if (!this._isReady) {
+          return;
+        }
+        if (this._isString(newValue)) {
+          var radioGroup = this.$.insertPoint;
+          radioGroup.select(newValue);
+
+          this.fire('value-changed', {
+            value: this.value
+          });
+        }
+
+        if (this._isReady) {
+          this.validate();
+        }
+      },
+      disabledChanged: function(newValue, oldValue) {
+        var atContainer = this.$.atContainer;
+        this.toggleClass('disabled', newValue, atContainer);
+
+        var inputs = Polymer.dom(this.$.insertPoint).querySelectorAll('paper-radio-button');
+        var len = inputs ? inputs.length : 0;
+        var i, item;
+
+        for (i = 0; i < len; i++) {
+          item = inputs[i];
+          this.toggleAttribute('disabled', newValue, item);
+          this.toggleAttribute('noink', newValue, item);
+        }
+
+        var labels = Polymer.dom(this.$.labelInsertPoint).querySelectorAll('.radio-text');
+        var len = labels ? labels.length : 0;
+        for (i = 0; i < len; i++) {
+          item = labels[i];
+          if (!this.xvaluelist[i].disabled) {
+            this.toggleClass('no-events', newValue, item);
+          }
+        }
+
+        if (this._isReady) {
+          this.validate();
+        }
+      },
+      requiredChanged: function(newValue, oldValue) {
+        if (this._isReady) {
+          this.validate();
+        }
+      },
+      _updateUIValidState: function(isValid) {
+        var label = this.$.label;
+        this.toggleClass('error', !isValid, label);
+        var insertPoint = this.$.insertPoint;
+        var allRadioButtons = Polymer.dom(insertPoint).querySelectorAll('paper-radio-button');
+        var self = this;
+        allRadioButtons.forEach(function(radioButton, index) {
+          self.toggleClass('error', !isValid, radioButton);
+        });
+        var labelInsertPoint = this.$.labelInsertPoint;
+        var radioTexts = Polymer.dom(labelInsertPoint).querySelectorAll('.radio-text');
+        radioTexts.forEach(function (radioText, index) {
+          self.toggleClass('error', !isValid, radioText);
+        });
+        // see https://www.polymer-project.org/1.0/docs/devguide/styling.html#style-api to understand why updateStyles() call is here
+        this.updateStyles();
+      },
+      // this function is part of the hint/validation API
+      // hint should be displayed when element gains focus
+      // behavior can not know when element gained focus
+      // but if gived focusable element it can attach to its focus event
+      // it should return focusable element if available or null if focusable element doesn't exist
+      _getFocusableElement: function () {
+        var focusable = this.$.insertPoint;
+        return focusable;
+      },
+      _constructRadioField: function(data) {
+        var radioButton = false;
+        var radioButtonId = false;
+
+        if (!data.disabled) {
+          radioButton = document.createElement('paper-radio-button');
+          var radioButtonId = 'paper-radio-button-' + Polymer.AtFormState._paperRadioButonNumber++;
+          Polymer.dom(radioButton).classList.add('layout');
+          Polymer.dom(radioButton).setAttribute('name', data.value);
+          Polymer.dom(radioButton).setAttribute('id', radioButtonId);
+        } else {
+          radioButton = document.createElement('div');
+          Polymer.dom(radioButton).classList.add('fake-empty-radio');
+        }
+
+        return radioButton;
+      },
+      _constructRadioLabel: function (data) {
+        var ironLabel = document.createElement('iron-label');
+        var radioButtonId = 'paper-radio-button-' + (Polymer.AtFormState._paperRadioButonNumber-1);
+        Polymer.dom(ironLabel).classList.add('radio-text');
+        Polymer.dom(ironLabel).innerHTML = data.title;
+        if (!data.disabled) { Polymer.dom(ironLabel).setAttribute('for', radioButtonId); }
+        this.toggleClass('disabled', data.disabled, ironLabel);
+        this.toggleClass('no-events', data.disabled, ironLabel);
+
+        return ironLabel;
+      },
+      _convertToArray: function(object) {
+        var result = [];
+
+        if (this._isArray(object)) {
+          // object is already array; return
+          return object;
+        }
+
+        if (this._isString(object) && object.indexOf(',') !== -1) {
+          // object is CSV string; split, convert and return
+          var
+            splitItems = object.split(','),
+            len = splitItems.length,
+            i, item;
+          for (var i = 0; i < len; i++) {
+            item = splitItems[i];
+            item = item.trim();
+            result.push({
+              value: item,
+              title: item
+            });
+          }
+        } else if (this._isString(object)) {
+          result.push({
+            value: object,
+            title: object
+          });
+        }
+
+        return result;
+      },
+      _isArray: function(object) {
+        return Object.prototype.toString.call(object) === '[object Array]';
+      },
+      _isString: function(object) {
+        return Object.prototype.toString.call(object) === '[object String]';
+      },
+      _isObject: function(object) {
+        return Object.prototype.toString.call(object) === '[object Object]';
+      }
+    });
+  </script>
+
+</dom-module>

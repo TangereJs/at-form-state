@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <title>at-form-state demo</title>
+
+  <script src="../webcomponentsjs/webcomponents-lite.js"></script>
+  <link rel="import" href="../polymer/polymer.html" />
+  <link rel="import" href="at-form-state.html" />
+</head>
+
+<body>
+  <div id="wrapper">
+    <header>
+      This is at-form-state demo
+    </header>
+    <section id="content">
+      <section>
+        <header>
+          <h3>at-form-state with just valuelist set</h3>
+        </header>
+        <article>
+          <div class="">
+            <p>
+              This is radio1 echo: <span id="radio1ValueEcho"></span>
+            </p>
+          </div>
+          <div class="">
+            <at-form-state id="radio1"></at-form-state>
+          </div>
+        </article>
+        <article>
+          <div class="">
+            <p>
+              This is radio2 echo:<span id="radio2ValueEcho"></span>
+            </p>
+          </div>
+          <div class="">
+            <at-form-state id="radio2"></at-form-state>
+          </div>
+        </article>
+      </section>
+      <section>
+        <header>
+          <h3>at-form-state with valuelist and value set</h3>
+        </header>
+        <article>
+          <div class="">
+            <p>
+              This is radio3 echo: <span id="radio3ValueEcho"></span>
+            </p>
+          </div>
+          <div class="">
+            <at-form-state id="radio3"></at-form-state>
+          </div>
+        </article>
+        <article>
+          <div class="">
+            <p>
+              This is radio4 echo:  <span id="radio4ValueEcho"></span>
+            </p>
+          </div>
+          <div class="">
+            <at-form-state id="radio4"></at-form-state>
+          </div>
+        </article>
+      </section>
+
+      <section>
+        <header>
+          <h3>at-form-state with valuelist and value set and disabled</h3>
+        </header>
+        <article>
+          <div class="">
+            <p>
+              This is radio5 echo:  <span id="radio5ValueEcho"></span>
+            </p>
+          </div>
+          <div class="">
+            <at-form-state id="radio5" disabled></at-form-state>
+          </div>
+        </article>
+        <article>
+          <div class="">
+            <p>
+              This is radio6 echo:  <span id="radio6ValueEcho"></span>
+            </p>
+          </div>
+          <div class="">
+            <at-form-state id="radio6" disabled></at-form-state>
+          </div>
+        </article>
+      </section>
+
+      <section>
+        <header>
+          <h3>at-form-state hidden label demo</h3>
+        </header>
+        <article>
+            <at-form-state label="Demo label" hide-label="true"></at-form-state>
+        </article>
+      </section>
+    </section>
+
+  </div>
+  <script>
+    document.addEventListener('WebComponentsReady', function() {
+      var
+        radio1 = document.getElementById('radio1'),
+        radio2 = document.getElementById('radio2'),
+        radio3 = document.getElementById('radio3'),
+        radio4 = document.getElementById('radio4'),
+        radio5 = document.getElementById('radio5'),
+        radio6 = document.getElementById('radio6'),
+        radio1ValueEcho = document.getElementById('radio1ValueEcho'),
+        radio2ValueEcho = document.getElementById('radio2ValueEcho'),
+        radio3ValueEcho = document.getElementById('radio3ValueEcho'),
+        radio4ValueEcho = document.getElementById('radio4ValueEcho'),
+        radio5ValueEcho = document.getElementById('radio5ValueEcho'),
+        radio6ValueEcho = document.getElementById('radio6ValueEcho');
+
+      // ----- setup radio1 -----
+      radio1.xvaluelist = [{
+        title: 'Title1',
+        value: 'value1'
+      }, {
+        title: 'Title2',
+        value: 'value2'
+      }, {
+        title: 'Title3',
+        value: 'value3'
+      }];
+
+      displayRadioValue(radio1, radio1ValueEcho);
+      radio1.addEventListener('value-changed', function(event) {
+        displayRadioValue(radio1, radio1ValueEcho);
+      });
+
+      // ----- setup radio2 -----
+      radio2.xvaluelist = "   XML   ,    JSON    ";
+
+      displayRadioValue(radio2, radio2ValueEcho);
+      radio2.addEventListener('value-changed', function(event) {
+        displayRadioValue(radio2, radio2ValueEcho);
+      });
+
+      function displayRadioValue(radio, echo) {
+        var valueJson = JSON.stringify(radio.value);
+        echo.innerHTML = valueJson;
+      }
+
+      // ----- setup radio3 -----
+      radio3.lable = "Select a fruit";
+      radio3.xvaluelist = [{
+        title: 'Banana',
+        value: 'banana'
+      }, {
+        title: 'Orange',
+        value: 'orange'
+      }, {
+        title: 'Plum',
+        value: 'plum'
+      }];
+
+      radio3.value = "plum";
+
+      displayRadioValue(radio3, radio3ValueEcho);
+      radio3.addEventListener('value-changed', function(event) {
+        displayRadioValue(radio3, radio3ValueEcho);
+      });
+
+      // ----- setup radio4 -----
+      radio4.label = "Is web development an enjoyable experience?"
+      radio4.xvaluelist = "Its great, Its good, Its OK, Its bad, Its really bad";
+
+      radio4.value = 'Its really bad';
+
+      displayRadioValue(radio4, radio4ValueEcho);
+      radio4.addEventListener('value-changed', function(event) {
+        displayRadioValue(radio4, radio4ValueEcho);
+      });
+
+      // ----- setup radio3 -----
+      radio5.lable = "Select a fruit";
+      radio5.xvaluelist = [{
+        title: 'Banana',
+        value: 'banana'
+      }, {
+        title: 'Orange',
+        value: 'orange'
+      }, {
+        title: 'Plum',
+        value: 'plum'
+      }];
+
+      radio5.value = "plum";
+
+      displayRadioValue(radio5, radio5ValueEcho);
+      radio5.addEventListener('value-changed', function(event) {
+        displayRadioValue(radio5, radio5ValueEcho);
+      });
+
+      // ----- setup radio4 -----
+      radio6.label = "Is web development an enjoyable experience?"
+      radio6.xvaluelist = "Its great, Its good, Its OK, Its bad, Its really bad";
+
+      radio6.value = "Its really bad";
+
+      displayRadioValue(radio6, radio6ValueEcho);
+      radio6.addEventListener('value-changed', function(event) {
+        displayRadioValue(radio6, radio6ValueEcho);
+      });
+    });
+  </script>
+</body>
+
+</html>
