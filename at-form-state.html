@@ -58,6 +58,10 @@
       apply(--unselectable);
     }
 
+    .radio-text.hidden {
+      display: none;
+    }
+
     .radio-text.no-events {
       pointer-events: none;
       cursor: default;
@@ -67,10 +71,8 @@
       @apply(--layout);
     }
 
-    .fake-empty-radio {
-      padding: 8px;
-      height: 32px;
-      width: 42px;
+    #insertPoint.hidden {
+      display: none;
     }
 
   </style>
@@ -278,22 +280,19 @@
         var atContainer = this.$.atContainer;
         this.toggleClass('disabled', newValue, atContainer);
 
-        var inputs = Polymer.dom(this.$.insertPoint).querySelectorAll('paper-radio-button');
-        var len = inputs ? inputs.length : 0;
-        var i, item;
+        var insertPoint = this.$.insertPoint;
+        this.toggleClass('hidden', newValue, insertPoint);
 
-        for (i = 0; i < len; i++) {
-          item = inputs[i];
-          this.toggleAttribute('disabled', newValue, item);
-          this.toggleAttribute('noink', newValue, item);
-        }
+        var valueIndex = this._valueToIndex(this.value);
 
         var labels = Polymer.dom(this.$.labelInsertPoint).querySelectorAll('.radio-text');
         var len = labels ? labels.length : 0;
+        var i, item;
         for (i = 0; i < len; i++) {
           item = labels[i];
-          if (!this.xvaluelist[i].disabled) {
-            this.toggleClass('no-events', newValue, item);
+          this.toggleClass('no-events', newValue, item);
+          if (valueIndex !== -1) {
+            this.toggleClass('hidden', newValue && i !== valueIndex, item);
           }
         }
 
@@ -305,6 +304,17 @@
         if (this._isReady) {
           this.validate();
         }
+      },
+      _valueToIndex: function (value) {
+        if (value === "") { return -1; }
+        var valueArr = this.xvaluelist;
+        var result = 0;
+        valueArr.forEach(function (tmp, index) {
+          if (tmp.value === value) {
+            result = index;
+          }
+        });
+        return result;
       },
       _updateUIValidState: function(isValid) {
         var label = this.$.label;
@@ -336,16 +346,12 @@
         var radioButton = false;
         var radioButtonId = false;
 
-        if (!data.disabled) {
-          radioButton = document.createElement('paper-radio-button');
-          var radioButtonId = 'paper-radio-button-' + Polymer.AtFormState._paperRadioButonNumber++;
-          Polymer.dom(radioButton).classList.add('layout');
-          Polymer.dom(radioButton).setAttribute('name', data.value);
-          Polymer.dom(radioButton).setAttribute('id', radioButtonId);
-        } else {
-          radioButton = document.createElement('div');
-          Polymer.dom(radioButton).classList.add('fake-empty-radio');
-        }
+        radioButton = document.createElement('paper-radio-button');
+        var radioButtonId = 'paper-radio-button-' + Polymer.AtFormState._paperRadioButonNumber++;
+        Polymer.dom(radioButton).classList.add('layout');
+        Polymer.dom(radioButton).setAttribute('name', data.value);
+        Polymer.dom(radioButton).setAttribute('id', radioButtonId);
+        this.toggleAttribute('disabled', data.disabled, radioButton);
 
         return radioButton;
       },
