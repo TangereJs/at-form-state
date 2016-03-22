@@ -190,6 +190,19 @@
           var newValue = event.detail.item.name;
           self.value = newValue;
         });
+        
+        var labelGroup = this.$.labelInsertPoint;
+        labelGroup.addEventListener('tap', function(event) {
+          var radioButtonId = event.target.for;
+          var radioButton = Polymer.dom(radioGroup).querySelector('#'+radioButtonId);
+          if (radioButton) {
+            var ripple = radioButton._ripple;
+            if(ripple) {
+              ripple.holdDown = false;
+              ripple.upAction();
+            }
+          }
+        });
 
         this._isReady = true;
       },
