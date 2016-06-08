@@ -176,7 +176,7 @@
       $meta: [{
         title: "Radio",
         type: "string",
-        xtype: "radio"
+        xtype: "state"
       }],
       ready: function() {
         this._isReady = false;
@@ -190,7 +190,7 @@
           var newValue = event.detail.item.name;
           self.value = newValue;
         });
-        
+
         var labelGroup = this.$.labelInsertPoint;
         labelGroup.addEventListener('tap', function(event) {
           var radioButtonId = event.target.for;
