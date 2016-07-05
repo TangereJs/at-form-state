@@ -7,76 +7,75 @@
 <link rel="import" href="../at-theme/at-theme.html">
 
 <dom-module id="at-form-state">
-  <style include="at-form-common"></style>
-  <style>
-    :host * {
-      box-sizing: border-box;
-    }
-
-    :host {
-      @apply(--at-form-host);
-    }
-
-    paper-radio-button.error {
-      --paper-radio-button-checked-color: var(--at-error-color);
-      --paper-radio-button-checked-ink-color: var(--at-error-color);
-      --paper-radio-button-unchecked-color: var(--at-error-color);
-      --paper-radio-button-unchecked-ink-color: var(--at-error-color);
-      --paper-radio-button-label-color: var(--at-error-color);
-    }
-
-    paper-radio-group:focus {
-      outline: none;
-    }
-
-    #insertPoint {
-      @apply(--layout-vertical);
-    }
-
-    #hint {
-      min-height: 14px;
-      margin-bottom: 8px;
-    }
-
-    .at-content-container {
-      @apply(--layout-horizontal);
-    }
-
-    .column-1 {
-      @apply(--layout-vertical);
-    }
-
-    .column-11 {
-      @apply(--layout-flex-11);
-      @apply(--layout-vertical);
-    }
-
-    .radio-text {
-      @apply(--at-form-label-font);
-      padding: 6px 0;
-      cursor: pointer;
-      apply(--unselectable);
-    }
-
-    .radio-text.hidden {
-      display: none;
-    }
-
-    .radio-text.no-events {
-      pointer-events: none;
-      cursor: default;
-    }
-
-    .layout {
-      @apply(--layout);
-    }
-
-    #insertPoint.hidden {
-      display: none;
-    }
-
-  </style>
   <template>
+    <style include="at-form-common"></style>
+    <style>
+      :host * {
+        box-sizing: border-box;
+      }
+
+      :host {
+        @apply(--at-form-host);
+      }
+
+      paper-radio-button.error {
+        --paper-radio-button-checked-color: var(--at-error-color);
+        --paper-radio-button-checked-ink-color: var(--at-error-color);
+        --paper-radio-button-unchecked-color: var(--at-error-color);
+        --paper-radio-button-unchecked-ink-color: var(--at-error-color);
+        --paper-radio-button-label-color: var(--at-error-color);
+      }
+
+      paper-radio-group:focus {
+        outline: none;
+      }
+
+      #insertPoint {
+        @apply(--layout-vertical);
+      }
+
+      #hint {
+        min-height: 14px;
+        margin-bottom: 8px;
+      }
+
+      .at-content-container {
+        @apply(--layout-horizontal);
+      }
+
+      .column-1 {
+        @apply(--layout-vertical);
+      }
+
+      .column-11 {
+        @apply(--layout-flex-11);
+        @apply(--layout-vertical);
+      }
+
+      .radio-text {
+        @apply(--at-form-label-font);
+        padding: 6px 0;
+        cursor: pointer;
+        apply(--unselectable);
+      }
+
+      .radio-text.hidden {
+        display: none;
+      }
+
+      .radio-text.no-events {
+        pointer-events: none;
+        cursor: default;
+      }
+
+      .layout {
+        @apply(--layout);
+      }
+
+      #insertPoint.hidden {
+        display: none;
+      }
+    </style>
     <div id="atContainer" class="at-container">
       <iron-label id="label" for="insertPoint">{{label}}</iron-label>
       <div id="contentContainer" class="at-content-container">
@@ -94,7 +93,7 @@
 
     Polymer({
       is: 'at-form-state',
-      behaviors: [ Tangere.behaviors.formValidation, Tangere.behaviors.i18n ],
+      behaviors: [Tangere.behaviors.formValidation, Tangere.behaviors.i18n],
       properties: {
         label: {
           type: String,
@@ -194,10 +193,10 @@
         var labelGroup = this.$.labelInsertPoint;
         labelGroup.addEventListener('tap', function(event) {
           var radioButtonId = event.target.for;
-          var radioButton = Polymer.dom(radioGroup).querySelector('#'+radioButtonId);
+          var radioButton = Polymer.dom(radioGroup).querySelector('#' + radioButtonId);
           if (radioButton) {
             var ripple = radioButton._ripple;
-            if(ripple) {
+            if (ripple) {
               ripple.holdDown = false;
               ripple.upAction();
             }
@@ -318,11 +317,13 @@
           this.validate();
         }
       },
-      _valueToIndex: function (value) {
-        if (value === "") { return -1; }
+      _valueToIndex: function(value) {
+        if (value === "") {
+          return -1;
+        }
         var valueArr = this.xvaluelist;
         var result = 0;
-        valueArr.forEach(function (tmp, index) {
+        valueArr.forEach(function(tmp, index) {
           if (tmp.value === value) {
             result = index;
           }
@@ -340,7 +341,7 @@
         });
         var labelInsertPoint = this.$.labelInsertPoint;
         var radioTexts = Polymer.dom(labelInsertPoint).querySelectorAll('.radio-text');
-        radioTexts.forEach(function (radioText, index) {
+        radioTexts.forEach(function(radioText, index) {
           self.toggleClass('error', !isValid, radioText);
         });
         // see https://www.polymer-project.org/1.0/docs/devguide/styling.html#style-api to understand why updateStyles() call is here
@@ -351,7 +352,7 @@
       // behavior can not know when element gained focus
       // but if gived focusable element it can attach to its focus event
       // it should return focusable element if available or null if focusable element doesn't exist
-      _getFocusableElement: function () {
+      _getFocusableElement: function() {
         var focusable = this.$.insertPoint;
         return focusable;
       },
@@ -368,12 +369,14 @@
 
         return radioButton;
       },
-      _constructRadioLabel: function (data) {
+      _constructRadioLabel: function(data) {
         var ironLabel = document.createElement('iron-label');
-        var radioButtonId = 'paper-radio-button-' + (Polymer.AtFormState._paperRadioButonNumber-1);
+        var radioButtonId = 'paper-radio-button-' + (Polymer.AtFormState._paperRadioButonNumber - 1);
         Polymer.dom(ironLabel).classList.add('radio-text');
         Polymer.dom(ironLabel).innerHTML = data.title;
-        if (!data.disabled) { Polymer.dom(ironLabel).setAttribute('for', radioButtonId); }
+        if (!data.disabled) {
+          Polymer.dom(ironLabel).setAttribute('for', radioButtonId);
+        }
         this.toggleClass('disabled', data.disabled, ironLabel);
         this.toggleClass('no-events', data.disabled, ironLabel);
 
