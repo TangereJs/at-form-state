@@ -1,0 +1,294 @@
+<!doctype html>
+<html>
+
+<head>
+
+  <title>at-form-state tests</title>
+
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
+
+  <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+
+  <script src="../../web-component-tester/browser.js"></script>
+  <script src="../../iron-test-helpers/test-helpers.js"></script>
+  <script src="../../iron-test-helpers/mock-interactions.js"></script>
+
+  <link rel="import" href="../../at-i18n/at-i18n-behavior.html">
+  <link rel="import" href="../at-form-state.html">
+
+</head>
+
+<body>
+
+  <test-fixture id="attrXvaluelist">
+    <template>
+      <at-form-state xvaluelist='[{ "title":"t1", "value": "v1" },{ "title":"t2", "value": "v2" },{ "title":"t3", "value": "v3" }]'></at-form-state>
+    </template>
+  </test-fixture>
+
+  <test-fixture id="attrXvaluelistValueV1">
+    <template>
+      <at-form-state xvaluelist='[{ "title":"t1", "value": "v1" },{ "title":"t2", "value": "v2" },{ "title":"t3", "value": "v3" }]' value="v1"></at-form-state>
+    </template>
+  </test-fixture>
+
+  <test-fixture id="attrXvaluelistValueV2">
+    <template>
+      <at-form-state xvaluelist='[{ "title":"t1", "value": "v1" },{ "title":"t2", "value": "v2" },{ "title":"t3", "value": "v3" }]' value="v2"></at-form-state>
+    </template>
+  </test-fixture>
+
+  <test-fixture id="attrXvaluelistValueV3">
+    <template>
+      <at-form-state xvaluelist='[{ "title":"t1", "value": "v1" },{ "title":"t2", "value": "v2" },{ "title":"t3", "value": "v3" }]' value="v3"></at-form-state>
+    </template>
+  </test-fixture>
+
+  <test-fixture id="attrXvaluelistValueV10">
+    <template>
+      <at-form-state xvaluelist='[{ "title":"t1", "value": "v1" },{ "title":"t2", "value": "v2" },{ "title":"t3", "value": "v3" }]' value="v10"></at-form-state>
+    </template>
+  </test-fixture>
+
+  <test-fixture id="propertyTests">
+    <template>
+      <at-form-state></at-form-state>
+    </template>
+  </test-fixture>
+
+  <script>
+    suite('value tests', function() {
+
+      function isArray(obj) {
+        return Object.prototype.toString.call(obj) === "[object Array]";
+      }
+
+      function isObject(obj) {
+        return Object.prototype.toString.call(obj) === "[object Object]";
+      }
+
+      function isFunction(obj) {
+        return Object.prototype.toString.call(obj) === "[object Function]";
+      }
+
+      function areEqual(obj1, obj2) {
+        var result = false;
+        var obj1PropertyValue;
+        var obj2PropertyValue;
+
+        if (isArray(obj1) && isArray(obj2)) {
+          result = obj1.length === obj2.length;
+          // if lengths are different return false
+          if (!result) {
+            return result;
+          }
+
+          // else compare items in the arrays for equality
+          for (var i = 0; i < obj1.length && result; i++) {
+            obj1PropertyValue = obj1[i];
+            obj2PropertyValue = obj2[i];
+            result = areEqual(obj1PropertyValue, obj2PropertyValue);
+          }
+        } else if (isObject(obj1) && isObject(obj2)) {
+          var obj1Properties = Object.keys(obj1);
+          var obj2Properties = Object.keys(obj2);
+          // tests that these arrays have same lengths and same names
+          result = areEqual(obj1Properties, obj2Properties);
+
+          if (!result) {
+            return result;
+          }
+          // test that every property in both objects has same value
+          for (var j = 0; j < obj1Properties.length && result; j++) {
+            var obj1PropertyName = obj1Properties[j];
+            var obj2PropertyName = obj2Properties[j];
+            obj1PropertyValue = obj1[obj1PropertyName];
+            obj2PropertyValue = obj2[obj2PropertyName];
+            result = areEqual(obj1PropertyValue, obj2PropertyValue);
+          }
+        } else if (isFunction(obj1) && isFunction(obj2)) {
+          result = obj1.toString() === obj2.toString();
+        } else {
+          // this tests string, number, boolean, null and undefined
+          result = obj1 === obj2;
+        }
+
+        return result;
+      }
+
+      var initialXvalueList = [{
+        title: "t1",
+        value: "v1"
+      }, {
+        title: "t2",
+        value: "v2"
+      }, {
+        title: "t3",
+        value: "v3"
+      }];
+
+      suite('tests where property values are set as attributes', function() {
+
+        test('xvalue list, value is empty string', function() {
+          var element = fixture('attrXvaluelist');
+
+          assert.equal(true, areEqual(element.xvaluelist, initialXvalueList), "xvaluelist not set correctly");
+          assert.equal("", element.value, "initial value not correct");
+
+          var insertPoint = element.$.insertPoint;
+          var selected = Polymer.dom(insertPoint).querySelector('paper-radio-button[checked]');
+          assert.equal(true, selected === null, "item not selected");
+
+          element.value = "v1";
+          assert.equal("v1", element.value, "initial value not correct");
+
+          var insertPoint = element.$.insertPoint;
+          var selected = Polymer.dom(insertPoint).querySelector('paper-radio-button[name=v1]');
+          assert.equal(false, selected === null, "item not selected");
+          assert.equal(true, selected.hasAttribute('checked'), 'item not checked');
+          assert.equal(true, selected.hasAttribute('active'), 'item not active');
+        });
+
+        test('xvalue list, value is v1', function() {
+          var element = fixture('attrXvaluelistValueV1');
+
+          assert.equal(true, areEqual(element.xvaluelist, initialXvalueList), "xvaluelist not set correctly");
+          assert.equal("v1", element.value, "initial value not correct");
+
+          var insertPoint = element.$.insertPoint;
+          var selected = Polymer.dom(insertPoint).querySelector('paper-radio-button[name=v1]');
+          assert.equal(false, selected === null, "item not selected");
+          assert.equal(true, selected.hasAttribute('checked'), 'item not checked');
+          assert.equal(true, selected.hasAttribute('active'), 'item not active');
+        });
+
+        test('xvalue list, value is v2', function() {
+          var element = fixture('attrXvaluelistValueV2');
+
+          assert.equal(true, areEqual(element.xvaluelist, initialXvalueList), "xvaluelist not set correctly");
+          assert.equal("v2", element.value, "initial value not correct");
+
+          var insertPoint = element.$.insertPoint;
+          var selected = Polymer.dom(insertPoint).querySelector('paper-radio-button[name=v2]');
+          assert.equal(false, selected === null, "item not selected");
+          assert.equal(true, selected.hasAttribute('checked'), 'item not checked');
+          assert.equal(true, selected.hasAttribute('active'), 'item not active');
+        });
+
+        test('xvalue list, value is v3', function() {
+          var element = fixture('attrXvaluelistValueV3');
+
+          assert.equal(true, areEqual(element.xvaluelist, initialXvalueList), "xvaluelist not set correctly");
+          assert.equal("v3", element.value, "initial value not correct");
+
+          var insertPoint = element.$.insertPoint;
+          var selected = Polymer.dom(insertPoint).querySelector('paper-radio-button[name=v3]');
+          assert.equal(false, selected === null, "item not selected");
+          assert.equal(true, selected.hasAttribute('checked'), 'item not checked');
+          assert.equal(true, selected.hasAttribute('active'), 'item not active');
+        });
+
+        test('xvalue list, value is v10', function() {
+          var element = fixture('attrXvaluelistValueV10');
+
+          assert.equal(true, areEqual(element.xvaluelist, initialXvalueList), "xvaluelist not set correctly");
+          assert.equal("v10", element.value, "initial value not correct");
+
+          var insertPoint = element.$.insertPoint;
+          var selected = Polymer.dom(insertPoint).querySelector('paper-radio-button[name=v10]');
+          assert.equal(true, selected === null, "item is selected");
+        });
+
+      });
+
+      suite('tests where property values are set in code', function() {
+
+        test('xvalue list, value is empty string', function() {
+          var element = fixture('propertyTests');
+          element.xvaluelist = initialXvalueList;
+
+          assert.equal(true, areEqual(element.xvaluelist, initialXvalueList), "xvaluelist not set correctly");
+          assert.equal("", element.value, "initial value not correct");
+
+          var insertPoint = element.$.insertPoint;
+          var selected = Polymer.dom(insertPoint).querySelector('paper-radio-button[checked]');
+          assert.equal(true, selected === null, "item not selected");
+
+          element.value = "v1";
+          assert.equal("v1", element.value, "initial value not correct");
+
+          var insertPoint = element.$.insertPoint;
+          var selected = Polymer.dom(insertPoint).querySelector('paper-radio-button[name=v1]');
+          assert.equal(false, selected === null, "item not selected");
+          assert.equal(true, selected.hasAttribute('checked'), 'item not checked');
+          assert.equal(true, selected.hasAttribute('active'), 'item not active');
+        });
+
+        test('xvalue list, value is v1', function() {
+          var element = fixture('propertyTests');
+          element.xvaluelist = initialXvalueList;
+          element.value = "v1";
+
+          assert.equal(true, areEqual(element.xvaluelist, initialXvalueList), "xvaluelist not set correctly");
+          assert.equal("v1", element.value, "initial value not correct");
+
+          var insertPoint = element.$.insertPoint;
+          var selected = Polymer.dom(insertPoint).querySelector('paper-radio-button[name=v1]');
+          assert.equal(false, selected === null, "item not selected");
+          assert.equal(true, selected.hasAttribute('checked'), 'item not checked');
+          assert.equal(true, selected.hasAttribute('active'), 'item not active');
+        });
+
+        test('xvalue list, value is v2', function() {
+          var element = fixture('propertyTests');
+          element.xvaluelist = initialXvalueList;
+          element.value = "v2";
+
+          assert.equal(true, areEqual(element.xvaluelist, initialXvalueList), "xvaluelist not set correctly");
+          assert.equal("v2", element.value, "initial value not correct");
+
+          var insertPoint = element.$.insertPoint;
+          var selected = Polymer.dom(insertPoint).querySelector('paper-radio-button[name=v2]');
+          assert.equal(false, selected === null, "item not selected");
+          assert.equal(true, selected.hasAttribute('checked'), 'item not checked');
+          assert.equal(true, selected.hasAttribute('active'), 'item not active');
+        });
+
+        test('xvalue list, value is v3', function() {
+          var element = fixture('propertyTests');
+          element.xvaluelist = initialXvalueList;
+          element.value = "v3";
+
+          assert.equal(true, areEqual(element.xvaluelist, initialXvalueList), "xvaluelist not set correctly");
+          assert.equal("v3", element.value, "initial value not correct");
+
+          var insertPoint = element.$.insertPoint;
+          var selected = Polymer.dom(insertPoint).querySelector('paper-radio-button[name=v3]');
+          assert.equal(false, selected === null, "item not selected");
+          assert.equal(true, selected.hasAttribute('checked'), 'item not checked');
+          assert.equal(true, selected.hasAttribute('active'), 'item not active');
+        });
+
+        test('xvalue list, value is v10', function() {
+          var element = fixture('propertyTests');
+          element.xvaluelist = initialXvalueList;
+          element.value = "v10";
+
+          assert.equal(true, areEqual(element.xvaluelist, initialXvalueList), "xvaluelist not set correctly");
+          assert.equal("v10", element.value, "initial value not correct");
+
+          var insertPoint = element.$.insertPoint;
+          var selected = Polymer.dom(insertPoint).querySelector('paper-radio-button[name=v10]');
+          assert.equal(true, selected === null, "item is selected");
+        });
+
+      });
+
+    });
+  </script>
+
+</body>
+
+</html>

@@ -1,0 +1,233 @@
+<!doctype html>
+<html>
+
+<head>
+
+  <title>at-form-state tests</title>
+
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
+
+  <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+
+  <script src="../../web-component-tester/browser.js"></script>
+  <script src="../../iron-test-helpers/test-helpers.js"></script>
+  <script src="../../iron-test-helpers/mock-interactions.js"></script>
+
+  <link rel="import" href="../at-form-state.html">
+
+</head>
+
+<body>
+
+  <test-fixture id="displayLabel">
+    <template>
+      <at-form-state label="lorem ipsum"></at-form-state>
+    </template>
+  </test-fixture>
+
+  <test-fixture id="hideLabel">
+    <template>
+      <at-form-state label="lorem ipsum" hide-label></at-form-state>
+    </template>
+  </test-fixture>
+
+  <test-fixture id="initialValue">
+    <template>
+      <at-form-state></at-form-state>
+    </template>
+  </test-fixture>
+
+  <test-fixture id="initialValueAsAttribute">
+    <template>
+      <at-form-state value="lorem ipsum"></at-form-state>
+    </template>
+  </test-fixture>
+
+  <test-fixture id="required">
+    <template>
+      <at-form-state required></at-form-state>
+    </template>
+  </test-fixture>
+
+  <test-fixture id="disabled">
+    <template>
+      <at-form-state disabled></at-form-state>
+    </template>
+  </test-fixture>
+
+  <test-fixture id="hidden">
+    <template>
+      <at-form-state hide></at-form-state>
+    </template>
+  </test-fixture>
+
+  <test-fixture id="requiredAndDisabled">
+    <template>
+      <at-form-state required disabled></at-form-state>
+    </template>
+  </test-fixture>
+
+  <test-fixture id="requiredAndHidden">
+    <template>
+      <at-form-state required hide></at-form-state>
+    </template>
+  </test-fixture>
+
+  <test-fixture id="errorMessageValidFalse">
+    <template>
+      <at-form-state error-message="demo error message"></at-form-state>
+    </template>
+  </test-fixture>
+
+  <test-fixture id="errorMessageAndDisabledValidTrue">
+    <template>
+      <at-form-state error-message="demo error message" disabled></at-form-state>
+    </template>
+  </test-fixture>
+
+  <test-fixture id="errorMessageAndHideValidTrue">
+    <template>
+      <at-form-state error-message="demo error message" hide></at-form-state>
+    </template>
+  </test-fixture>
+
+  <test-fixture id="isHintDisplayed">
+    <template>
+      <at-form-state hint="This is demo hint"></at-form-state>
+    </template>
+  </test-fixture>
+
+  <script>
+    suite('basic tests', function() {
+
+      suite('property values set as attributes', function() {
+
+        test('is label displayed', function() {
+          var element = fixture('displayLabel');
+          assert.equal('lorem ipsum', element.label, 'label value is not correct');
+          assert.equal(false, element.hideLabel, 'hideLabel not set correctly');
+
+          var label = element.$.label;
+          assert.equal('lorem ipsum', label.textContent, 'laberl textContent not set correctly');
+          assert.equal(label.classList.contains('hidden'), false, 'label has hidden css class');
+          var displayValue = window.getComputedStyle(label).getPropertyValue('display');
+          assert.equal('block', displayValue, 'label style display property is not correct');
+        });
+
+        test('is label hidden', function() {
+          var element = fixture('hideLabel');
+          assert.equal('lorem ipsum', element.label, 'label value is not correct');
+          assert.equal(true, element.hideLabel, 'hideLabel not set correctly');
+
+          var label = element.$.label;
+          assert.equal('lorem ipsum', label.textContent, 'laberl textContent not set correctly');
+          assert.equal(label.classList.contains('hidden'), true, "label doesn't have hidden css class");
+          var displayValue = window.getComputedStyle(label).getPropertyValue('display');
+          assert.equal('none', displayValue, 'label style display property is not correct');
+        });
+
+        test('initial value is empty', function() {
+          var input = fixture('initialValue');
+          assert.equal('', input.value, 'initial value is not correct');
+        });
+
+        test('initial value is lorem ipsum', function() {
+          var element = fixture('initialValueAsAttribute');
+          assert.equal('lorem ipsum', element.value, 'initial value is not correct');
+        });
+
+        test('required sets validation message', function() {
+          var input = fixture('required');
+          assert.equal(input.required, true, 'required property is true');
+          assert.equal(input._errorMessage, '', 'error message is initially empty');
+          MockInteractions.focus(input);
+          MockInteractions.blur(input);
+          assert.equal(input._errorMessage, '', 'This field is required.');
+        });
+
+        test('disabled sets css classes', function() {
+          var input = fixture('disabled');
+          input.xvaluelist = [{ title:"t1", value: "v1" },{ title:"t2", value: "v2" },{ title:"t3", value: "v3" }];
+          input._xvaluelistChanged(input.xvaluelist, undefined);
+          assert.equal(input.disabled, true, 'disabled property is true');
+
+          assert.equal(input.$.atContainer.classList.contains('disabled'), true, 'container does not have disabled class');
+          var insertPoint = input.$.insertPoint;
+          var radios = Polymer.dom(insertPoint).children;
+          radios.forEach(function (radio, index) {
+            assert.equal(true, radio.hasAttribute('disabled'), 'individual elements are not disabled');
+          });
+        });
+
+        test('hidden sets css classes', function() {
+          var input = fixture('hidden');
+          assert.equal(input.hide, true, 'hide property is true');
+          assert.equal(input.$.atContainer.classList.contains('hidden'), true, 'container has hidden class');
+        });
+
+        test('required and disabled => valid = true', function() {
+          var input = fixture('requiredAndDisabled');
+          assert.equal(input.required, true, 'required property is true');
+          assert.equal(input.disabled, true, 'disabled property is true');
+          assert.equal(input.valid, true, 'input is valid');
+        });
+
+        test('required and hidden => valid = true', function() {
+          var input = fixture('requiredAndHidden');
+          assert.equal(input.required, true, 'required property is true');
+          assert.equal(input.hide, true, 'hide property is true');
+          assert.equal(input.valid, true, 'input is valid');
+        });
+
+        test('errorMessage => valid = false', function() {
+          var input = fixture('errorMessageValidFalse');
+          assert.equal(input.errorMessage, 'demo error message', 'error message is correctly set');
+          assert.equal(false, input.valid, 'input is valid because error message is set as attribute');
+          input.errorMessage = 'Another version of demo error message';
+          assert.equal(input.errorMessage, 'Another version of demo error message', 'error message is correctly set');
+          assert.equal(false, input.valid, 'input is invalid because error message is set as property');
+        });
+
+        test('errorMessage & disabled => valid = true', function() {
+          var input = fixture('errorMessageAndDisabledValidTrue');
+          assert.equal(true, input.disabled, 'element is not disabled');
+          assert.equal(input.errorMessage, 'demo error message', 'error message is correctly set');
+          assert.equal(true, input.valid, 'input is valid because error message is set as attribute');
+          input.errorMessage = 'Another version of demo error message';
+          assert.equal(input.errorMessage, 'Another version of demo error message', 'error message is correctly set');
+          assert.equal(true, input.valid, 'input is invalid because error message is set as property');
+        });
+
+        test('errorMessage & hide => valid = true', function() {
+          var input = fixture('errorMessageAndHideValidTrue');
+          assert.equal(true, input.hide, 'element is not hidden');
+          assert.equal(input.errorMessage, 'demo error message', 'error message is correctly set');
+          assert.equal(true, input.valid, 'input is valid because error message is set as attribute');
+          input.errorMessage = 'Another version of demo error message';
+          assert.equal(input.errorMessage, 'Another version of demo error message', 'error message is correctly set');
+          assert.equal(true, input.valid, 'input is invalid because error message is set as property');
+        });
+
+        test('is hint displayed', function(done) {
+          var input = fixture('isHintDisplayed');
+          assert.equal(input.hint, "This is demo hint", 'input.hint property is not set');
+          var inputElement = input._getFocusableElement();
+          MockInteractions.focus(inputElement);
+
+          flush(function() {
+            assert.equal(input.$.hint.innerHTML, "This is demo hint", 'input.hint text is incorrect');
+            done();
+          });
+        });
+
+
+      });
+
+    });
+  </script>
+
+</body>
+
+</html>

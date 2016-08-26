@@ -1,6 +1,7 @@
 <link rel="import" href="../tangere/tangere.html">
 <link rel="import" href="../at-i18n/at-i18n-behavior.html">
-<link rel="import" href="../at-form-behaviors/at-form-behaviors-validation.html">
+<link rel="import" href="../at-form-behaviors/at-form-behaviors.html">
+<link rel="import" href="at-form-state-input-validation.html">
 <link rel="import" href="../paper-radio-group/paper-radio-group.html">
 <link rel="import" href="../paper-radio-button/paper-radio-button.html">
 <link rel="import" href="../iron-label/iron-label.html">
@@ -93,32 +94,96 @@
 
     Polymer({
       is: 'at-form-state',
-      behaviors: [Tangere.behaviors.formValidation, Tangere.behaviors.i18n],
+      behaviors: [ Tangere.behaviors.i18n, Tangere.behaviors.formUIGeneric, Tangere.behaviors.AtFormStateInputValidation ],
       properties: {
+        /**
+         * Element's label for element display purposes
+         * @property label
+         * @type String
+         * @default ""
+         */
         label: {
           type: String,
-          value: 'at-form-state',
+          value: '',
           title: 'Label'
         },
+
+        /**
+         * When true label is hidden
+         * @property hideLabel
+         * @type Boolean
+         * @default false
+         */
         hideLabel: {
           type: Boolean,
           value: false,
-          observer: 'hideLabelChanged',
+          observer: '_hideLabelChanged',
           title: 'Do not show the label'
         },
-        // ------------------------------------------------------------
-        // valuelist renamed to xvaluelist is here to improve compatibility with copyProperties function in at-core-form/script/schema-helpers.js
-        // this function goes through element properties and copies property values from property definition in json schema to element properties
-        // now valuelist doens't exist in property definition in json schema so undefined will be copied
-        // xvaluelist exists in json schema and when property name is valuelist, xvaluelist should be copied
-        // so we introduce xvaluelist property in at-form-state to remove if statement that would detect this situation
-        // ------------------------------------------------------------
+
+        /**
+         * Element's disabled state
+         * @property disabled
+         * @type Boolean
+         * @default false
+         */
+        disabled: {
+          type: Boolean,
+          value: false,
+          observer: '_disabledChanged',
+          title: 'Field value can not be changed'
+        },
+
+        /**
+         * Hides the element. When hidden nothing is displayed for the element
+         * @property hide
+         * @type Boolean
+         * @default false
+         */
+        hide: {
+          type: Boolean,
+          value: false,
+          observer: '_hideChanged',
+          title: 'Field is invisible'
+        },
+
+        /**
+         * Element's required state for element validation purposes
+         * @property required
+         * @type Boolean
+         * @default false
+         */
+        required: {
+          type: Boolean,
+          value: false,
+          title: 'Input required'
+        },
+
+        /**
+         * Element's value
+         * @property value
+         * @type String
+         * @default ""
+         */
+        value: {
+          type: String,
+          value: '',
+          observer: '_valueChanged',
+          title: 'Value'
+        },
+
+        /**
+         * List of availble options provided as array of { title, value } pairs
+         * @property xvaluelist
+         * @type Array
+         * @default []
+         */
         xvaluelist: {
           type: Array,
           value: function() {
             return [];
           },
-          observer: 'xvaluelistChanged',
+          observer: '_xvaluelistChanged',
           schema: {
             items: {
               type: "object",
@@ -130,58 +195,32 @@
                 value: {
                   type: "string",
                   title: "Value"
-                },
-                disabled: {
-                  type: "boolean",
-                  title: "Disabled"
                 }
               }
             }
           },
           layout: 'horizontal',
           title: 'Value List'
-        },
-        value: {
-          type: String,
-          value: '',
-          observer: 'valueChanged',
-          title: 'Value'
-        },
-        required: {
-          type: Boolean,
-          value: false,
-          observer: 'requiredChanged',
-          title: 'Input required'
-        },
-        disabled: {
-          type: Boolean,
-          value: false,
-          observer: 'disabledChanged',
-          title: 'Field value can not be changed'
-        },
-        /**
-         * Hides the element. When hidden nothing is displayed for the element
-         * @property hide
-         * @type Boolean
-         * @default false
-         */
-        hide: {
-          type: Boolean,
-          value: false,
-          observer: 'hideChanged',
-          title: 'Field is invisible'
         }
+
       },
+
+      observers: [
+        '_internalValidStateUpdate(disabled, required)'
+      ],
+
       $meta: [{
         title: "Radio",
         type: "string",
         xtype: "state"
       }],
+
+      _hideLabelChanged: function(newValue, oldValue) {
+        this.toggleClass("hidden", newValue, this.$.label);
+      },
+
       ready: function() {
         this._isReady = false;
-
-        var boundValidateIsValueInXValueList = this._validateIsValueInXValueList.bind(this);
-        this._validationFunctions.push(boundValidateIsValueInXValueList);
 
         var self = this;
         var radioGroup = this.$.insertPoint;
@@ -204,91 +243,10 @@
         });
 
         this._isReady = true;
+        this._internalValidStateUpdate(this.disabled, this.required);
       },
-      focus: function() {
-        var paperRadioGroup = this.$.insertPoint;
-        paperRadioGroup.focus();
-      },
-      _validateIsValueInXValueList: function(value) {
-        var valueList = this.xvaluelist;
-        var result = false;
 
-        if (valueList.length < 1) {
-          return true;
-        }
-        if (value === '') {
-          return true;
-        }
-
-        valueList.forEach(function(item, index) {
-          result = result || item.value === value;
-        });
-
-        if (!result) {
-          this._errorMessage = 'Value ' + value + ' is invalid.';
-        }
-
-        return result;
-      },
-      hideChanged: function(newValue, oldValue) {
-        var wrapper = this.$.atContainer;
-        this.toggleClass('hidden', newValue, wrapper);
-        if (this._isReady) {
-          this.validate();
-        }
-      },
-      hideLabelChanged: function(newValue, oldValue) {
-        this.toggleClass("hidden", newValue, this.$.label);
-      },
-      xvaluelistChanged: function(newValue, oldValue) {
-        var self = this;
-
-        // clear previous html
-        Polymer.dom(this.$.insertPoint).innerHTML = '';
-        Polymer.dom(this.$.labelInsertPoint).innerHTML = '';
-
-        // newValue can be CSV or array; detection needed and normlization to array
-        newValue = this._convertToArray(newValue);
-        if (this._isString(this.xvaluelist)) {
-          this.xvaluelist = newValue;
-          return;
-        }
-
-        newValue.forEach(function(element, index, array) {
-          var fieldHtml = self._constructRadioField(element);
-          Polymer.dom(self.$.insertPoint).appendChild(fieldHtml);
-          var fieldLabel = self._constructRadioLabel(element);
-          Polymer.dom(self.$.labelInsertPoint).appendChild(fieldLabel);
-        });
-
-        if (newValue.length > 0) {
-          var inputValue = this.value;
-          if (inputValue !== "") {
-            var radioGroup = this.$.insertPoint;
-            radioGroup.select(inputValue);
-          }
-        }
-
-        this.disabledChanged(this.disabled, this.disabled);
-      },
-      valueChanged: function(newValue, oldValue) {
-        if (!this._isReady) {
-          return;
-        }
-        if (this._isString(newValue)) {
-          var radioGroup = this.$.insertPoint;
-          radioGroup.select(newValue);
-
-          this.fire('value-changed', {
-            value: this.value
-          });
-        }
-
-        if (this._isReady) {
-          this.validate();
-        }
-      },
-      disabledChanged: function(newValue, oldValue) {
+      _disabledChanged: function(newValue, oldValue) {
         var atContainer = this.$.atContainer;
         this.toggleClass('disabled', newValue, atContainer);
 
@@ -307,29 +265,34 @@
             this.toggleClass('hidden', newValue && i !== valueIndex, item);
           }
         }
+      },
 
+      _hideChanged: function(newValue, oldValue) {
+        var wrapper = this.$.atContainer;
+        this.toggleClass('hidden', newValue, wrapper);
+      },
+
+      _internalValidStateUpdate: function(disabled, required) {
         if (this._isReady) {
-          this.validate();
+          this.validate(true);
         }
       },
-      requiredChanged: function(newValue, oldValue) {
-        if (this._isReady) {
-          this.validate();
+
+      validate: function (showError) {
+        if (showError === undefined) { showError = this.autovalidate; }
+
+        var validationResult = this._validateBaseData();
+        if(showError) this._handleValidationResult(validationResult);
+        if (validationResult.isFinal) {
+          return validationResult.isValid;
         }
+
+        validationResult = this._validateData(this, this.value, this.T.bind(this));
+        if(showError) this._handleValidationResult(validationResult);
+
+        return validationResult.isValid;
       },
-      _valueToIndex: function(value) {
-        if (value === "") {
-          return -1;
-        }
-        var valueArr = this.xvaluelist;
-        var result = 0;
-        valueArr.forEach(function(tmp, index) {
-          if (tmp.value === value) {
-            result = index;
-          }
-        });
-        return result;
-      },
+
       _updateUIValidState: function(isValid) {
         var label = this.$.label;
         this.toggleClass('error', !isValid, label);
@@ -347,6 +310,71 @@
         // see https://www.polymer-project.org/1.0/docs/devguide/styling.html#style-api to understand why updateStyles() call is here
         this.updateStyles();
       },
+
+      _valueChanged: function(newValue, oldValue) {
+
+        if (this._isString(newValue)) {
+          var radioGroup = this.$.insertPoint;
+          radioGroup.select(newValue);
+
+          this._fireValueChangedEvent(newValue);
+        }
+      },
+
+      _xvaluelistChanged: function(newValue, oldValue) {
+        var self = this;
+
+        // clear previous html
+        Polymer.dom(this.$.insertPoint).innerHTML = '';
+        Polymer.dom(this.$.labelInsertPoint).innerHTML = '';
+
+        // newValue can be CSV or array; detection needed and normlization to array
+        newValue = this._convertToArray(newValue);
+        if (this._isString(this.xvaluelist)) {
+          this.xvaluelist = newValue;
+          return;
+        }
+
+        newValue.forEach(function(element, index, array) {
+          var fieldHtml = self._constructRadioField(element, self.disabled);
+          Polymer.dom(self.$.insertPoint).appendChild(fieldHtml);
+          var fieldLabel = self._constructRadioLabel(element, self.disabled);
+          Polymer.dom(self.$.labelInsertPoint).appendChild(fieldLabel);
+        });
+
+        var radioGroup = this.$.insertPoint;
+        radioGroup._updateItems();
+
+        if (newValue.length > 0) {
+          var inputValue = this.value;
+          if (inputValue !== "") {
+            radioGroup.select(inputValue);
+          }
+        }
+      },
+
+      _valueToIndex: function(value) {
+        function isString(obj) {
+          return Object.prototype.toString.call(obj) === "[object String]";
+        }
+        if (!isString(value) || value === "") {
+          return -1;
+        }
+        var valueArr = this.xvaluelist;
+        var result = 0;
+        valueArr.forEach(function(tmp, index) {
+          if (tmp.value === value) {
+            result = index;
+          }
+        });
+        return result;
+      },
+
+      focus: function() {
+        var paperRadioGroup = this.$.insertPoint;
+        paperRadioGroup.focus();
+      },
+
       // this function is part of the hint/validation API
       // hint should be displayed when element gains focus
       // behavior can not know when element gained focus
@@ -356,7 +384,7 @@
         var focusable = this.$.insertPoint;
         return focusable;
       },
-      _constructRadioField: function(data) {
+      _constructRadioField: function(data, disabled) {
         var radioButton = false;
         var radioButtonId = false;
 
@@ -365,11 +393,11 @@
         Polymer.dom(radioButton).classList.add('layout');
         Polymer.dom(radioButton).setAttribute('name', data.value);
         Polymer.dom(radioButton).setAttribute('id', radioButtonId);
-        this.toggleAttribute('disabled', data.disabled, radioButton);
+        this.toggleAttribute('disabled', disabled, radioButton);
 
         return radioButton;
       },
-      _constructRadioLabel: function(data) {
+      _constructRadioLabel: function(data, disabled) {
         var ironLabel = document.createElement('iron-label');
         var radioButtonId = 'paper-radio-button-' + (Polymer.AtFormState._paperRadioButonNumber - 1);
         Polymer.dom(ironLabel).classList.add('radio-text');
@@ -377,8 +405,8 @@
         if (!data.disabled) {
           Polymer.dom(ironLabel).setAttribute('for', radioButtonId);
         }
-        this.toggleClass('disabled', data.disabled, ironLabel);
-        this.toggleClass('no-events', data.disabled, ironLabel);
+        this.toggleClass('disabled', disabled, ironLabel);
+        this.toggleClass('no-events', disabled, ironLabel);
 
         return ironLabel;
       },

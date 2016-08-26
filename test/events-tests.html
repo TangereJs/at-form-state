@@ -1,0 +1,272 @@
+<!doctype html>
+<html>
+
+<head>
+
+  <title>at-form-state tests</title>
+
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
+
+  <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+
+  <script src="../../web-component-tester/browser.js"></script>
+  <script src="../../iron-test-helpers/test-helpers.js"></script>
+  <script src="../../iron-test-helpers/mock-interactions.js"></script>
+
+  <link rel="import" href="../at-form-state.html">
+</head>
+
+<body>
+
+  <test-fixture id="attrXvaluelist">
+    <template>
+      <at-form-state xvaluelist='[{ "title":"t1", "value": "v1" },{ "title":"t2", "value": "v2" },{ "title":"t3", "value": "v3" }]'></at-form-state>
+    </template>
+  </test-fixture>
+
+  <test-fixture id="attrXvaluelistValue">
+    <template>
+      <at-form-state xvaluelist='[{ "title":"t1", "value": "v1" },{ "title":"t2", "value": "v2" },{ "title":"t3", "value": "v3" }]' value="v1"></at-form-state>
+    </template>
+  </test-fixture>
+
+  <test-fixture id="propertyTests">
+    <template>
+      <at-form-state></at-form-state>
+    </template>
+  </test-fixture>
+
+  <script>
+    suite('events tests', function() {
+
+      function isArray(obj) {
+        return Object.prototype.toString.call(obj) === "[object Array]";
+      }
+
+      function isObject(obj) {
+        return Object.prototype.toString.call(obj) === "[object Object]";
+      }
+
+      function isFunction(obj) {
+        return Object.prototype.toString.call(obj) === "[object Function]";
+      }
+
+      function areEqual(obj1, obj2) {
+        var result = false;
+        var obj1PropertyValue;
+        var obj2PropertyValue;
+
+        if (isArray(obj1) && isArray(obj2)) {
+          result = obj1.length === obj2.length;
+          // if lengths are different return false
+          if (!result) {
+            return result;
+          }
+
+          // else compare items in the arrays for equality
+          for (var i = 0; i < obj1.length && result; i++) {
+            obj1PropertyValue = obj1[i];
+            obj2PropertyValue = obj2[i];
+            result = areEqual(obj1PropertyValue, obj2PropertyValue);
+          }
+        } else if (isObject(obj1) && isObject(obj2)) {
+          var obj1Properties = Object.keys(obj1);
+          var obj2Properties = Object.keys(obj2);
+          // tests that these arrays have same lengths and same names
+          result = areEqual(obj1Properties, obj2Properties);
+
+          if (!result) {
+            return result;
+          }
+          // test that every property in both objects has same value
+          for (var j = 0; j < obj1Properties.length && result; j++) {
+            var obj1PropertyName = obj1Properties[j];
+            var obj2PropertyName = obj2Properties[j];
+            obj1PropertyValue = obj1[obj1PropertyName];
+            obj2PropertyValue = obj2[obj2PropertyName];
+            result = areEqual(obj1PropertyValue, obj2PropertyValue);
+          }
+        } else if (isFunction(obj1) && isFunction(obj2)) {
+          result = obj1.toString() === obj2.toString();
+        } else {
+          // this tests string, number, boolean, null and undefined
+          result = obj1 === obj2;
+        }
+
+        return result;
+      }
+
+      var initialXvalueList = [{
+        title: "t1",
+        value: "v1"
+      }, {
+        title: "t2",
+        value: "v2"
+      }, {
+        title: "t3",
+        value: "v3"
+      }];
+
+      suite('tests were property values are set as attributes ', function() {
+
+        test('(1/2) xvaluelist set as attribute, setting value triggers value-changed event', function(done) {
+          var input = fixture('attrXvaluelist');
+
+          assert.equal(true, areEqual(input.xvaluelist, initialXvalueList), "xvaluelist not set correctly");
+          assert.equal(input.value, '', 'initial value not set correctly');
+
+          flush(function() {
+            var insertPoint = input.$.insertPoint;
+            var labelInsertPoint = input.$.labelInsertPoint;
+
+            var radios = Polymer.dom(insertPoint).children;
+            var labels = Polymer.dom(labelInsertPoint).children;
+            radios.forEach(function(radio, index) {
+              var item = input.xvaluelist[index];
+              assert.equal(radio.getAttribute("name"), item.value, "radio name not set correctly");
+              var label = labels[index];
+              assert.equal(label.textContent, item.title, "radio name not set correctly");
+            });
+
+            var expectedValue = "";
+            var eventCount = 0;
+            input.addEventListener('value-changed', function(event) {
+              assert.equal(event.detail.value, expectedValue, 'event detail value not set correctly');
+              assert.equal(input.value, expectedValue, 'element value not set correctly');
+              eventCount += 1;
+
+            });
+            expectedValue = "v1";
+            input.value = "v1";
+            Polymer.dom(input).setAttribute('value', "v1");
+            input.value = "v1";
+
+            expectedValue = "v2";
+            input.value = "v2";
+            Polymer.dom(input).setAttribute('value', "v2");
+            input.value = "v2";
+
+            expectedValue = "v3";
+            input.value = "v3";
+            Polymer.dom(input).setAttribute('value', "v3");
+            input.value = "v3";
+
+            flush(function() {
+              assert.equal(3, eventCount, "at-form-state didn't fire correct number of events");
+              done();
+            });
+          });
+        });
+
+        test('(2/2) xvaluelist set as attribute, setting value triggers value-changed event', function(done) {
+          var input = fixture('attrXvaluelistValue');
+          assert.equal(true, areEqual(input.xvaluelist, initialXvalueList), "xvaluelist not set correctly");
+          assert.equal(input.value, 'v1', 'initial value not set correctly');
+
+          flush(function() {
+            var insertPoint = input.$.insertPoint;
+            var labelInsertPoint = input.$.labelInsertPoint;
+
+            var radios = Polymer.dom(insertPoint).children;
+            var labels = Polymer.dom(labelInsertPoint).children;
+
+            radios.forEach(function(radio, index) {
+              var item = input.xvaluelist[index];
+              assert.equal(radio.getAttribute("name"), item.value, "radio name not set correctly");
+              var label = labels[index];
+              assert.equal(label.textContent, item.title, "radio name not set correctly");
+            });
+
+            var expectedValue = "";
+            var eventCount = 0;
+            input.addEventListener('value-changed', function(event) {
+              assert.equal(event.detail.value, expectedValue, 'event detail value not set correctly');
+              assert.equal(input.value, expectedValue, 'element value not set correctly');
+              eventCount += 1;
+
+            });
+            expectedValue = "v1";
+            input.value = "v1";
+            Polymer.dom(input).setAttribute('value', "v1");
+            input.value = "v1";
+
+            expectedValue = "v2";
+            input.value = "v2";
+            Polymer.dom(input).setAttribute('value', "v2");
+            input.value = "v2";
+
+            expectedValue = "v3";
+            input.value = "v3";
+            Polymer.dom(input).setAttribute('value', "v3");
+            input.value = "v3";
+
+            flush(function() {
+              assert.equal(2, eventCount, "at-form-state didn't fire correct number of events");
+              done();
+            });
+          });
+        });
+
+        suite('tests where property values are set in code', function() {
+
+          test("xvaluelist set as property, setting value triggers value-changed event", function(done) {
+            var input = fixture('propertyTests');
+            input.xvaluelist = initialXvalueList;
+
+            assert.equal(true, areEqual(input.xvaluelist, initialXvalueList), "xvaluelist not set correctly");
+            assert.equal(input.value, '', 'initial value not set correctly');
+
+            flush(function() {
+              var insertPoint = input.$.insertPoint;
+              var labelInsertPoint = input.$.labelInsertPoint;
+
+              var radios = Polymer.dom(insertPoint).children;
+              var labels = Polymer.dom(labelInsertPoint).children;
+              radios.forEach(function(radio, index) {
+                var item = input.xvaluelist[index];
+                assert.equal(radio.getAttribute("name"), item.value, "radio name not set correctly");
+                var label = labels[index];
+                assert.equal(label.textContent, item.title, "radio name not set correctly");
+              });
+
+              var expectedValue = "";
+              var eventCount = 0;
+              input.addEventListener('value-changed', function(event) {
+                assert.equal(event.detail.value, expectedValue, 'event detail value not set correctly');
+                assert.equal(input.value, expectedValue, 'element value not set correctly');
+                eventCount += 1;
+
+              });
+              expectedValue = "v1";
+              input.value = "v1";
+              Polymer.dom(input).setAttribute('value', "v1");
+              input.value = "v1";
+
+              expectedValue = "v2";
+              input.value = "v2";
+              Polymer.dom(input).setAttribute('value', "v2");
+              input.value = "v2";
+
+              expectedValue = "v3";
+              input.value = "v3";
+              Polymer.dom(input).setAttribute('value', "v3");
+              input.value = "v3";
+
+              flush(function() {
+                assert.equal(3, eventCount, "at-form-state didn't fire correct number of events");
+                done();
+              });
+            });
+
+          });
+
+        });
+      });
+    });
+  </script>
+
+</body>
+
+</html>
