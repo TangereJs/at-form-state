@@ -17,6 +17,8 @@
 
       :host {
         @apply(--at-form-host);
+        display: block;
+        box-sizing: border-box;
       }
 
       paper-radio-button.error {
@@ -75,6 +77,11 @@
 
       #insertPoint.hidden {
         display: none;
+      }
+
+      .invisible {
+        visibility: hidden;
+        pointer-events: none;
       }
     </style>
     <div id="atContainer" class="at-container">
@@ -195,6 +202,10 @@
                 value: {
                   type: "string",
                   title: "Value"
+                },
+                disabled: {
+                  type: "boolean",
+                  title: "Disabled"
                 }
               }
             }
@@ -332,7 +343,12 @@
 
         // clear previous html
         Polymer.dom(this.$.insertPoint).innerHTML = '';
+        var contentChildren = this.$.insertPoint.getContentChildren();
+        contentChildren.forEach(function (child, index, array) {
+          child.remove();
+        });
         Polymer.dom(this.$.labelInsertPoint).innerHTML = '';
+        // debugger;
 
         // newValue can be CSV or array; detection needed and normlization to array
         newValue = this._convertToArray(newValue);
@@ -342,9 +358,9 @@
         }
 
         newValue.forEach(function(element, index, array) {
-          var fieldHtml = self._constructRadioField(element, self.disabled);
+          var fieldHtml = self._constructRadioField(element, self.disabled, element.disabled);
           Polymer.dom(self.$.insertPoint).appendChild(fieldHtml);
-          var fieldLabel = self._constructRadioLabel(element, self.disabled);
+          var fieldLabel = self._constructRadioLabel(element, self.disabled || element.disabled);
           Polymer.dom(self.$.labelInsertPoint).appendChild(fieldLabel);
         });
 
@@ -390,7 +406,7 @@
         var focusable = this.$.insertPoint;
         return focusable;
       },
-      _constructRadioField: function(data, disabled) {
+      _constructRadioField: function(data, disabled, invisible) {
         var radioButton = false;
         var radioButtonId = false;
 
@@ -399,11 +415,12 @@
         Polymer.dom(radioButton).classList.add('layout');
         Polymer.dom(radioButton).setAttribute('name', data.value);
         Polymer.dom(radioButton).setAttribute('id', radioButtonId);
-        this.toggleAttribute('disabled', disabled, radioButton);
+        this.toggleAttribute('disabled', disabled || invisible, radioButton);
+        this.toggleClass('invisible', invisible, radioButton);
 
         return radioButton;
       },
-      _constructRadioLabel: function(data, disabled) {
+      _constructRadioLabel: function(data, disabled, invisible) {
         var ironLabel = document.createElement('iron-label');
         var radioButtonId = 'paper-radio-button-' + (Polymer.AtFormState._paperRadioButonNumber - 1);
         Polymer.dom(ironLabel).classList.add('radio-text');
