@@ -11,13 +11,13 @@
   <template>
     <style include="at-form-common"></style>
     <style>
-      :host * {
+      :host {
+        @apply --at-form-host;
+        display: block;
         box-sizing: border-box;
       }
 
-      :host {
-        @apply(--at-form-host);
-        display: block;
+      :host * {
         box-sizing: border-box;
       }
 
@@ -34,7 +34,7 @@
       }
 
       #insertPoint {
-        @apply(--layout-vertical);
+        @apply --layout-vertical;
       }
 
       #hint {
@@ -43,23 +43,23 @@
       }
 
       .at-content-container {
-        @apply(--layout-horizontal);
+        @apply --layout-horizontal;
       }
 
       .column-1 {
-        @apply(--layout-vertical);
+        @apply --layout-vertical;
       }
 
       .column-11 {
-        @apply(--layout-flex-11);
-        @apply(--layout-vertical);
+        @apply --layout-flex-11;
+        @apply --layout-vertical;
       }
 
       .radio-text {
-        @apply(--at-form-label-font);
+        @apply --at-form-label-font;
         padding: 6px 0;
         cursor: pointer;
-        apply(--unselectable);
+        @apply --unselectable;
       }
 
       .radio-text.hidden {
@@ -72,7 +72,7 @@
       }
 
       .layout {
-        @apply(--layout);
+        @apply --layout;
       }
 
       #insertPoint.hidden {
@@ -309,6 +309,8 @@
       },
 
       _updateUIValidState: function(isValid) {
+        if (!this.$) return;
+        
         var label = this.$.label;
         this.toggleClass('error', !isValid, label);
         var insertPoint = this.$.insertPoint;

@@ -156,7 +156,7 @@
           assert.equal(input.$.atContainer.classList.contains('disabled'), true, 'container does not have disabled class');
           var insertPoint = input.$.insertPoint;
           var radios = Polymer.dom(insertPoint).children;
-          radios.forEach(function (radio, index) {
+          Array.prototype.forEach.call(radios, function (radio, index) {
             assert.equal(radio.hasAttribute('disabled'), true, 'individual elements are not disabled');
           });
         });

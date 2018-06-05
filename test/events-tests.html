@@ -123,7 +123,7 @@
 
             var radios = Polymer.dom(insertPoint).children;
             var labels = Polymer.dom(labelInsertPoint).children;
-            radios.forEach(function(radio, index) {
+            Array.prototype.forEach.call(radios, function(radio, index) {
               var item = input.xvaluelist[index];
               assert.equal(radio.getAttribute("name"), item.value, "radio name not set correctly");
               var label = labels[index];
@@ -172,7 +172,7 @@
             var radios = Polymer.dom(insertPoint).children;
             var labels = Polymer.dom(labelInsertPoint).children;
 
-            radios.forEach(function(radio, index) {
+            Array.prototype.forEach.call(radios, function(radio, index) {
               var item = input.xvaluelist[index];
               assert.equal(radio.getAttribute("name"), item.value, "radio name not set correctly");
               var label = labels[index];
@@ -224,7 +224,7 @@
 
               var radios = Polymer.dom(insertPoint).children;
               var labels = Polymer.dom(labelInsertPoint).children;
-              radios.forEach(function(radio, index) {
+              Array.prototype.forEach.call(radios, function(radio, index) {
                 var item = input.xvaluelist[index];
                 assert.equal(radio.getAttribute("name"), item.value, "radio name not set correctly");
                 var label = labels[index];
