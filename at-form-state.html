@@ -195,13 +195,13 @@
             items: {
               type: "object",
               properties: {
-                title: {
-                  type: "string",
-                  title: "Title"
-                },
                 value: {
                   type: "string",
                   title: "Value"
+                },
+                title: {
+                  type: "string",
+                  title: "Title"
                 },
                 disabled: {
                   type: "boolean",
@@ -211,7 +211,8 @@
             }
           },
           layout: 'horizontal',
-          title: 'Value List'
+          title: 'Value List',
+          xgridcols: "12"
         }
 
       },
