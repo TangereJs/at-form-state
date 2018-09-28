@@ -7,9 +7,9 @@
     "at-theme": "TangereJs/at-theme#master",
     "at-i18n": "TangereJs/at-i18n#master",
     "at-form-behaviors": "TangereJs/at-form-behaviors#master",
-    "paper-radio-group": "PolymerElements/paper-radio-group#master",
-    "paper-radio-button": "PolymerElements/paper-radio-button#master",
-    "iron-label": "PolymerElements/iron-label#master",
+    "paper-radio-group": "PolymerElements/paper-radio-group#^2.0.0",
+    "paper-radio-button": "PolymerElements/paper-radio-button#^2.0.0",
+    "iron-label": "PolymerElements/iron-label#^2.0.0",
     "at-doc-viewer": "TangereJs/at-doc-viewer#master"
   }
 }
